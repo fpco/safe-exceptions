@@ -45,7 +45,7 @@ spec = do
     describe "isSyncException" $ withAll
         $ \e sync -> isSyncException e `shouldBe` sync
     describe "isAsncException" $ withAll
-        $ \e sync -> isAsyncException e `shouldNotBe` sync
+        $ \e sync -> isAsyncException e `shouldBe` not sync
     describe "toSyncException" $ withAll
         $ \e _ -> isSyncException (toSyncException e) `shouldBe` True
     describe "toAsyncException" $ withAll
