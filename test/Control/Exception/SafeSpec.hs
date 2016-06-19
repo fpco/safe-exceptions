@@ -1,20 +1,89 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Control.Exception.SafeSpec (spec) where
 
-import Control.Exception
+import Control.Concurrent (threadDelay, newEmptyMVar, forkIOWithUnmask, takeMVar, putMVar)
+import Control.Exception (assert, ArithException (..), AsyncException (..), BlockedIndefinitelyOnMVar (..), BlockedIndefinitelyOnSTM (..))
+import qualified Control.Exception as E
 import Control.Exception.Safe
+import Control.Monad (forever)
+import Data.Void (Void, absurd)
+import System.IO.Unsafe (unsafePerformIO)
+import System.Timeout (timeout)
 import Test.Hspec
+
+-- | Ugly hack needed because the underlying type is not exported
+timeoutException :: SomeException
+timeoutException =
+    case unsafePerformIO $ mask $ \restore -> timeout 1 $ tryAsync $ restore $ forever $ threadDelay maxBound of
+        Nothing -> error "timeoutException returned Nothing"
+        Just (Left e) -> e
+        Just (Right e) -> absurd e
+
+asyncE :: IO a
+asyncE = E.throwIO ThreadKilled
+
+syncE :: IO a
+syncE = E.throwIO Overflow
+
+-- | Maps each exception to whether it is synchronous
+exceptions :: [(SomeException, Bool)]
+exceptions =
+    [ go Overflow True
+    , go ThreadKilled False
+    , go timeoutException False
+    , go BlockedIndefinitelyOnMVar True -- see the README, this is weird
+    , go BlockedIndefinitelyOnSTM True -- see the README, this is weird
+    ]
+  where
+    go e b = (toException e, b)
+
+withAll :: (SomeException -> Bool -> IO ()) -> Spec
+withAll f = mapM_ (\(e, b) -> it (show e) (f e b)) exceptions
 
 spec :: Spec
 spec = do
-    describe "isSyncException" $ do
-        let test e expected = it (show e) (isSyncException e `shouldBe` expected)
-        test Overflow True
-        test ThreadKilled False
-    describe "toSyncException" $ do
-        let test e = it (show e) (isSyncException (toSyncException e) `shouldBe` True)
-        test Overflow
-        test ThreadKilled
-    describe "toAsyncException" $ do
-        let test e = it (show e) (isAsyncException (toAsyncException e) `shouldBe` True)
-        test Overflow
-        test ThreadKilled
+    describe "isSyncException" $ withAll
+        $ \e sync -> isSyncException e `shouldBe` sync
+    describe "isAsncException" $ withAll
+        $ \e sync -> isAsyncException e `shouldNotBe` sync
+    describe "toSyncException" $ withAll
+        $ \e _ -> isSyncException (toSyncException e) `shouldBe` True
+    describe "toAsyncException" $ withAll
+        $ \e _ -> isAsyncException (toAsyncException e) `shouldBe` True
+
+    let shouldBeSync :: Either SomeException Void -> IO ()
+        shouldBeSync (Left e)
+            | isSyncException e = return ()
+            | otherwise = error $ "Unexpected async exception: " ++ show e
+        shouldBeSync (Right x) = absurd x
+
+        shouldBeAsync :: Either SomeException Void -> IO ()
+        shouldBeAsync (Left e)
+            | isAsyncException e = return ()
+            | otherwise = error $ "Unexpected sync exception: " ++ show e
+        shouldBeAsync (Right x) = absurd x
+
+        shouldThrowSync f = E.try f >>= shouldBeSync
+        shouldThrowAsync f = E.try f >>= shouldBeAsync
+
+    describe "throw" $ withAll $ \e _ -> shouldThrowSync (throw e)
+    describe "throwTo" $ withAll $ \e _ -> do
+        var <- newEmptyMVar
+        tid <- E.uninterruptibleMask_ $ forkIOWithUnmask $ \restore -> do
+            res <- E.try $ restore $ forever $ threadDelay maxBound
+            putMVar var res
+        throwTo tid e
+        res <- takeMVar var
+        shouldBeAsync res
+
+    describe "stays async" $ do
+        let withPairs f = do
+                it "sync/sync" $ shouldThrowSync $ f syncE syncE
+                it "sync/async" $ shouldThrowAsync $ f syncE asyncE
+                it "async/sync" $ shouldThrowAsync $ f asyncE syncE
+                it "async/async" $ shouldThrowAsync $ f asyncE asyncE
+        describe "onException" $ withPairs $ \e1 e2 -> e1 `onException` e2
+        describe "withException" $ withPairs $ \e1 e2 -> e1 `withException` (\(_ :: SomeException) -> e2)
+        describe "bracket_" $ withPairs $ \e1 e2 -> bracket_ (return ()) e1 e2
+        describe "finally" $ withPairs $ \e1 e2 -> e1 `finally` e2
+        describe "bracketOnError_" $ withPairs $ \e1 e2 -> bracketOnError_ (return ()) e1 e2

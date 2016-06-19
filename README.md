@@ -239,3 +239,22 @@ handler if `Foo` looks like an asynchronous exception.
 
 The ideal solution is to make a stronger distinction in the core
 libraries themselves between sync and async exceptions.
+
+### Deadlock detection exceptions
+
+Two exceptions types which are handled surprisingly are
+`BlockedIndefinitelyOnMVar` and `BlockedIndefinitelyOnSTM`. Even
+though these exceptions are thrown asynchronously by the runtime
+system, for our purposes we treat them as synchronous. The reasons are
+twofold:
+
+* There is a specific action taken in the local thread - blocking on a
+  variable which will never change - which causes the exception to be
+  raised. This makes their behavior very similar to synchronous
+  exceptions. In fact, one could argue that a function like `takeMVar`
+  is synchronously throwing `BlockedIndefinitelyOnMVar`
+* By our standards of recoverable vs non-recoverable, these exceptions
+  certainly fall into the recoverable category. Unlike an intentional
+  kill signal from another thread or the user (via Ctrl-C), we would
+  like to be able to detect the we entered a deadlock condition and do
+  something intelligent in an application.
