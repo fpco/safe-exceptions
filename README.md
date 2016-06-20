@@ -12,6 +12,48 @@ and explaining the corner cases clearly, the hope is to turn what was
 previously something scary into an aspect of Haskell everyone feels
 safe using.
 
+## Quickstart
+
+This section is intended to give you the bare minimum information to
+use this library (and Haskell runtime exceptions in general)
+correctly.
+
+* Import the `Control.Exception.Safe` module. Do _not_ import
+  `Control.Exception` itself, which lacks the safety guarantees that
+  this library adds. Same applies to `Control.Monad.Catch`.
+* If something can go wrong in your function, you can report this with
+  the `throw`. (For compatible naming, there are synonyms for this of
+  `throwIO` and `throwM`.)
+* If you want to catch a specific type of exception, use `catch`,
+  `handle`, or `try`.
+* If you want to recover from _anything_ that may go wrong in a
+  function, use `catchAny`, `handleAny`, or `tryAny`.
+* If you want to launch separate threads and kill them externally, you
+  should use the
+  [async package](https://www.stackage.org/package/async).
+* Unless you really know what you're doing, avoid the following functions:
+    * `catchAsync`
+    * `handleAsync`
+    * `tryAsync`
+    * `impureThrow`
+    * `throwTo`
+* If you need to perform some allocation or cleanup of resources, use
+  one of the following functions (and _don't_ use the
+  `catch`/`handle`/`try` family of functions):
+    * `onException`
+    * `withException`
+    * `bracket`
+    * `bracket_`
+    * `finally`
+    * `bracketOnError`
+    * `bracketOnError_`
+
+Hopefully this will be able to get you up-and-running quickly.
+
+_Request to readers_: if there are specific workflows that you're
+unsure of how to accomplish with this library, please ask so we can
+develop a more full-fledged cookbook as a companion to this file.
+
 ## Terminology
 
 We're going to define three different versions of exceptions. Note

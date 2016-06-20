@@ -2,6 +2,12 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+-- | Please see the README.md file in the safe-exceptions repo for
+-- information on how to use this module. Relevant links:
+--
+-- * https://github.com/fpco/safe-exceptions#readme
+--
+-- * https://www.stackage.org/package/safe-exceptions
 module Control.Exception.Safe
     ( -- * Throwing
       throw
