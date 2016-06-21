@@ -300,3 +300,25 @@ twofold:
   kill signal from another thread or the user (via Ctrl-C), we would
   like to be able to detect the we entered a deadlock condition and do
   something intelligent in an application.
+
+### Interruptible vs uninterruptible masking
+
+In `Control.Exception`, allocation functions and cleanup handlers in
+combinators like `bracket` are masked using the (interruptible) `mask`
+function, in contrast to `uninterruptibleMask`. There have been some debates
+about the correctness of this in the past, notably [a libraries mailing list
+discussion kicked off by Eyal
+Lotem](https://mail.haskell.org/pipermail/libraries/2014-September/023675.html).
+It seems that general consensus is:
+
+* `uninterruptibleMask` is a better choice
+* But changing the core library like this would potentially break too many
+  programs
+
+In its current version, this library uses `uninterruptibleMask` for both
+allocation functions and cleanup handlers. This is a debatable decision (and
+one worth debating!). An example of alternatives would be:
+
+* Only `uninterruptibleMask` the cleanup pieces, not the allocation pieces
+* Match `Control.Exception`'s behavior
+* Provide two versions of each function, or possibly two modules

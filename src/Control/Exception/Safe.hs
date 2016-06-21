@@ -90,12 +90,18 @@ throwM = throw
 
 -- | Throw an asynchronous exception to another thread
 --
+-- It's usually a better idea to use the async package, see
+-- <https://github.com/fpco/safe-exceptions#quickstart>
+--
 -- @since 0.1.0.0
 throwTo :: (Exception e, MonadIO m) => ThreadId -> e -> m ()
 throwTo tid = liftIO . E.throwTo tid . toAsyncException
 
 -- | Generate a pure value which, when forced, will synchronously
 -- throw the given exception
+--
+-- Generally it's better to avoid using this function and instead use 'throw',
+-- see <https://github.com/fpco/safe-exceptions#quickstart>
 --
 -- @since 0.1.0.0
 impureThrow :: Exception e => e -> a
@@ -120,6 +126,10 @@ catchAny = catch
 
 -- | 'catch' without async exception safety
 --
+-- Generally it's better to avoid using this function since we do not want to
+-- recover from async exceptions, see
+-- <https://github.com/fpco/safe-exceptions#quickstart>
+--
 -- @since 0.1.0.0
 catchAsync :: (C.MonadCatch m, Exception e) => m a -> (e -> m a) -> m a
 catchAsync = C.catch
@@ -137,6 +147,10 @@ handleAny :: C.MonadCatch m => (SomeException -> m a) -> m a -> m a
 handleAny = flip catchAny
 
 -- | Flipped version of 'catchAsync'
+--
+-- Generally it's better to avoid using this function since we do not want to
+-- recover from async exceptions, see
+-- <https://github.com/fpco/safe-exceptions#quickstart>
 --
 -- @since 0.1.0.0
 handleAsync :: (C.MonadCatch m, Exception e) => (e -> m a) -> m a -> m a
@@ -156,6 +170,10 @@ tryAny :: C.MonadCatch m => m a -> m (Either SomeException a)
 tryAny = try
 
 -- | 'try' without async exception safety
+--
+-- Generally it's better to avoid using this function since we do not want to
+-- recover from async exceptions, see
+-- <https://github.com/fpco/safe-exceptions#quickstart>
 --
 -- @since 0.1.0.0
 tryAsync :: (C.MonadCatch m, E.Exception e) => m a -> m (Either e a)
