@@ -2,6 +2,9 @@
 
 *Safe, consistent, and easy exception handling*
 
+__WARNING__: This library is not yet intended for real world use, caveat
+emptor!!!
+
 [![Build Status](https://travis-ci.org/fpco/safe-exceptions.svg?branch=master)](https://travis-ci.org/fpco/safe-exceptions)
 
 Runtime exceptions - as exposed in `base` by the `Control.Exception`
