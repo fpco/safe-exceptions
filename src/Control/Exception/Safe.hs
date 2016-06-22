@@ -183,18 +183,18 @@ tryAsync = C.try
 --
 -- @since 0.1.0.0
 onException :: C.MonadMask m => m a -> m b -> m a
-onException f g = withException f (\(_ :: SomeException) -> g)
+onException thing after = withException thing (\(_ :: SomeException) -> after)
 
 -- | Like 'onException', but provides the handler the thrown
 -- exception.
 --
 -- @since 0.1.0.0
 withException :: (C.MonadMask m, E.Exception e) => m a -> (e -> m b) -> m a
-withException f g = C.uninterruptibleMask $ \restore -> do
-    res1 <- C.try $ restore f
+withException thing after = C.uninterruptibleMask $ \restore -> do
+    res1 <- C.try $ restore thing
     case res1 of
         Left e1 -> do
-            res2 <- C.try $ g e1
+            res2 <- C.try $ after e1
             case res2 of
                 Left e2 | isAsyncException (e2 :: SomeException) -> C.throwM e2
                 _ -> C.throwM e1
@@ -204,52 +204,52 @@ withException f g = C.uninterruptibleMask $ \restore -> do
 --
 -- @since 0.1.0.0
 bracket :: C.MonadMask m => m a -> (a -> m b) -> (a -> m c) -> m c
-bracket f g h = C.mask $ \restore -> do
-    x <- restore f
-    res1 <- C.try $ h x
+bracket before after thing = C.mask $ \restore -> do
+    x <- restore before
+    res1 <- C.try $ thing x
     case res1 of
         Left (e1 :: SomeException) -> do
-            res2 <- C.try $ C.uninterruptibleMask_ $ g x
+            res2 <- C.try $ C.uninterruptibleMask_ $ after x
             case res2 of
                 Left (e2 :: SomeException)
                     | isAsyncException e2 -> C.throwM e2
                 _ -> C.throwM e1
         Right y -> do
-            C.uninterruptibleMask_ $ g x
+            C.uninterruptibleMask_ $ after x
             return y
 
 -- | Async safe version of 'E.bracket_'
 --
 -- @since 0.1.0.0
 bracket_ :: C.MonadMask m => m a -> m b -> m c -> m c
-bracket_ f g h = bracket f (const g) (const h)
+bracket_ before after thing = bracket before (const after) (const thing)
 
 -- | Async safe version of 'E.finally'
 --
 -- @since 0.1.0.0
 finally :: C.MonadMask m => m a -> m b -> m a
-finally f g = C.uninterruptibleMask $ \restore -> do
-    res1 <- C.try $ restore f
+finally thing after = C.uninterruptibleMask $ \restore -> do
+    res1 <- C.try $ restore thing
     case res1 of
         Left (e1 :: SomeException) -> do
-            res2 <- C.try g
+            res2 <- C.try after
             case res2 of
                 Left e2 | isAsyncException (e2 :: SomeException) -> C.throwM e2
                 _ -> C.throwM e1
         Right x -> do
-            g
+            after
             return x
 
 -- | Async safe version of 'E.bracketOnError'
 --
 -- @since 0.1.0.0
 bracketOnError :: C.MonadMask m => m a -> (a -> m b) -> (a -> m c) -> m c
-bracketOnError f g h = C.mask $ \restore -> do
-    x <- restore f
-    res1 <- C.try $ h x
+bracketOnError before after thing = C.mask $ \restore -> do
+    x <- restore before
+    res1 <- C.try $ thing x
     case res1 of
         Left (e1 :: SomeException) -> do
-            res2 <- C.try $ C.uninterruptibleMask_ $ g x
+            res2 <- C.try $ C.uninterruptibleMask_ $ after x
             case res2 of
                 Left (e2 :: SomeException)
                     | isAsyncException e2 -> C.throwM e2
@@ -260,7 +260,7 @@ bracketOnError f g h = C.mask $ \restore -> do
 --
 -- @since 0.1.0.0
 bracketOnError_ :: C.MonadMask m => m a -> m b -> m c -> m c
-bracketOnError_ f g h = bracketOnError f (const g) (const h)
+bracketOnError_ before after thing = bracketOnError before (const after) (const thing)
 
 -- | Wrap up an asynchronous exception to be treated as a synchronous
 -- exception
