@@ -322,6 +322,6 @@ In its current version, this library uses `mask` (interruptible) for allocation
 functions and `uninterruptibleMask` cleanup handlers. This is a debatable
 decision (and one worth debating!). An example of alternatives would be:
 
-* Use `uninterruptibleMask1 for both allocation and cleanup pieces
+* Use `uninterruptibleMask` for both allocation and cleanup pieces
 * Match `Control.Exception`'s behavior
 * Provide two versions of each function, or possibly two modules
