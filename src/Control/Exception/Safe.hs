@@ -206,7 +206,7 @@ withException thing after = C.uninterruptibleMask $ \restore -> do
 bracket :: C.MonadMask m => m a -> (a -> m b) -> (a -> m c) -> m c
 bracket before after thing = C.mask $ \restore -> do
     x <- before
-    res1 <- C.try $ thing x
+    res1 <- C.try $ restore (thing x)
     case res1 of
         Left (e1 :: SomeException) -> do
             res2 <- C.try $ C.uninterruptibleMask_ $ after x
@@ -246,7 +246,7 @@ finally thing after = C.uninterruptibleMask $ \restore -> do
 bracketOnError :: C.MonadMask m => m a -> (a -> m b) -> (a -> m c) -> m c
 bracketOnError before after thing = C.mask $ \restore -> do
     x <- before
-    res1 <- C.try $ thing x
+    res1 <- C.try $ restore (thing x)
     case res1 of
         Left (e1 :: SomeException) -> do
             res2 <- C.try $ C.uninterruptibleMask_ $ after x
