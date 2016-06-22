@@ -318,10 +318,10 @@ It seems that general consensus is:
 * But changing the core library like this would potentially break too many
   programs
 
-In its current version, this library uses `uninterruptibleMask` for both
-allocation functions and cleanup handlers. This is a debatable decision (and
-one worth debating!). An example of alternatives would be:
+In its current version, this library uses `mask` (interruptible) for allocation
+functions and `uninterruptibleMask` cleanup handlers. This is a debatable
+decision (and one worth debating!). An example of alternatives would be:
 
-* Only `uninterruptibleMask` the cleanup pieces, not the allocation pieces
+* Use `uninterruptibleMask1 for both allocation and cleanup pieces
 * Match `Control.Exception`'s behavior
 * Provide two versions of each function, or possibly two modules

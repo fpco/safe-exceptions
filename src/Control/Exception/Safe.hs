@@ -204,18 +204,18 @@ withException f g = C.uninterruptibleMask $ \restore -> do
 --
 -- @since 0.1.0.0
 bracket :: C.MonadMask m => m a -> (a -> m b) -> (a -> m c) -> m c
-bracket f g h = C.uninterruptibleMask $ \restore -> do
+bracket f g h = C.mask $ \restore -> do
     x <- restore f
     res1 <- C.try $ h x
     case res1 of
         Left (e1 :: SomeException) -> do
-            res2 <- C.try $ g x
+            res2 <- C.try $ C.uninterruptibleMask_ $ g x
             case res2 of
                 Left (e2 :: SomeException)
                     | isAsyncException e2 -> C.throwM e2
                 _ -> C.throwM e1
         Right y -> do
-            g x
+            C.uninterruptibleMask_ $ g x
             return y
 
 -- | Async safe version of 'E.bracket_'
@@ -244,12 +244,12 @@ finally f g = C.uninterruptibleMask $ \restore -> do
 --
 -- @since 0.1.0.0
 bracketOnError :: C.MonadMask m => m a -> (a -> m b) -> (a -> m c) -> m c
-bracketOnError f g h = C.uninterruptibleMask $ \restore -> do
+bracketOnError f g h = C.mask $ \restore -> do
     x <- restore f
     res1 <- C.try $ h x
     case res1 of
         Left (e1 :: SomeException) -> do
-            res2 <- C.try $ g x
+            res2 <- C.try $ C.uninterruptibleMask_ $ g x
             case res2 of
                 Left (e2 :: SomeException)
                     | isAsyncException e2 -> C.throwM e2
