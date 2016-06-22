@@ -205,7 +205,7 @@ withException thing after = C.uninterruptibleMask $ \restore -> do
 -- @since 0.1.0.0
 bracket :: C.MonadMask m => m a -> (a -> m b) -> (a -> m c) -> m c
 bracket before after thing = C.mask $ \restore -> do
-    x <- restore before
+    x <- before
     res1 <- C.try $ thing x
     case res1 of
         Left (e1 :: SomeException) -> do
@@ -245,7 +245,7 @@ finally thing after = C.uninterruptibleMask $ \restore -> do
 -- @since 0.1.0.0
 bracketOnError :: C.MonadMask m => m a -> (a -> m b) -> (a -> m c) -> m c
 bracketOnError before after thing = C.mask $ \restore -> do
-    x <- restore before
+    x <- before
     res1 <- C.try $ thing x
     case res1 of
         Left (e1 :: SomeException) -> do
