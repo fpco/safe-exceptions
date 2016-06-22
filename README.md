@@ -278,8 +278,8 @@ synchronous type.
 The functions in this library prevent that from happening via
 exception type wrappers, but if an underlying library does something
 surprising, the functions here may not work correctly. Further, even
-when using this library, you may be surprised by the fact that `throw
-Foo >>= catch (\Foo -> ...)` won't actually trigger the exception
+when using this library, you may be surprised by the fact that ``throw
+Foo `catch` (\Foo -> ...)`` won't actually trigger the exception
 handler if `Foo` looks like an asynchronous exception.
 
 The ideal solution is to make a stronger distinction in the core
