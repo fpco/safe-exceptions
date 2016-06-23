@@ -15,6 +15,21 @@ and explaining the corner cases clearly, the hope is to turn what was
 previously something scary into an aspect of Haskell everyone feels
 safe using.
 
+## Goals
+
+This package provides additional safety and simplicity versus
+`Control.Exception` by having its functions recognize the difference between
+synchronous and asynchronous exceptions. As described below, synchronous
+exceptions are treated as _recoverable_, allowing you to catch and handle them
+as well as clean up after them, whereas asynchronous exceptions can only be
+cleaned up after. In particular, this library prevents you from making the
+following mistakes:
+
+* Catching and swallowing an asynchronous exception
+* Throwing an asynchronous exception synchronously
+* Throwing a synchronous exception asynchronously
+* Swallowing asynchronous exceptions via failing cleanup handlers
+
 ## Quickstart
 
 This section is intended to give you the bare minimum information to
