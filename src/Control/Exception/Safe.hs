@@ -194,26 +194,29 @@ withException thing after = C.uninterruptibleMask $ \restore -> do
     res1 <- C.try $ restore thing
     case res1 of
         Left e1 -> do
-            res2 <- C.try $ after e1
-            case res2 of
-                Left e2 | isAsyncException (e2 :: SomeException) -> C.throwM e2
-                _ -> C.throwM e1
+            -- see explanation in bracket
+            _ :: Either SomeException b <- C.try $ after e1
+            C.throwM e1
         Right x -> return x
 
 -- | Async safe version of 'E.bracket'
 --
 -- @since 0.1.0.0
-bracket :: C.MonadMask m => m a -> (a -> m b) -> (a -> m c) -> m c
+bracket :: forall m a b c. C.MonadMask m
+        => m a -> (a -> m b) -> (a -> m c) -> m c
 bracket before after thing = C.mask $ \restore -> do
     x <- before
     res1 <- C.try $ restore (thing x)
     case res1 of
         Left (e1 :: SomeException) -> do
-            res2 <- C.try $ C.uninterruptibleMask_ $ after x
-            case res2 of
-                Left (e2 :: SomeException)
-                    | isAsyncException e2 -> C.throwM e2
-                _ -> C.throwM e1
+            -- explicitly ignore exceptions from after. We know that
+            -- no async exceptions were thrown there, so therefore
+            -- the stronger exception must come from thing
+            --
+            -- https://github.com/fpco/safe-exceptions/issues/2
+            _ :: Either SomeException b <-
+                C.try $ C.uninterruptibleMask_ $ after x
+            C.throwM e1
         Right y -> do
             C.uninterruptibleMask_ $ after x
             return y
@@ -232,10 +235,9 @@ finally thing after = C.uninterruptibleMask $ \restore -> do
     res1 <- C.try $ restore thing
     case res1 of
         Left (e1 :: SomeException) -> do
-            res2 <- C.try after
-            case res2 of
-                Left e2 | isAsyncException (e2 :: SomeException) -> C.throwM e2
-                _ -> C.throwM e1
+            -- see bracket for explanation
+            _ :: Either SomeException b <- C.try after
+            C.throwM e1
         Right x -> do
             after
             return x
@@ -243,17 +245,17 @@ finally thing after = C.uninterruptibleMask $ \restore -> do
 -- | Async safe version of 'E.bracketOnError'
 --
 -- @since 0.1.0.0
-bracketOnError :: C.MonadMask m => m a -> (a -> m b) -> (a -> m c) -> m c
+bracketOnError :: forall m a b c. C.MonadMask m
+               => m a -> (a -> m b) -> (a -> m c) -> m c
 bracketOnError before after thing = C.mask $ \restore -> do
     x <- before
     res1 <- C.try $ restore (thing x)
     case res1 of
         Left (e1 :: SomeException) -> do
-            res2 <- C.try $ C.uninterruptibleMask_ $ after x
-            case res2 of
-                Left (e2 :: SomeException)
-                    | isAsyncException e2 -> C.throwM e2
-                _ -> C.throwM e1
+            -- ignore the exception, see bracket for explanation
+            _ :: Either SomeException b <-
+                C.try $ C.uninterruptibleMask_ $ after x
+            C.throwM e1
         Right y -> return y
 
 -- | Async safe version of 'E.bracketOnError_'

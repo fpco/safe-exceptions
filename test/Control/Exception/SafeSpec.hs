@@ -79,11 +79,17 @@ spec = do
     describe "stays async" $ do
         let withPairs f = do
                 it "sync/sync" $ shouldThrowSync $ f syncE syncE
-                it "sync/async" $ shouldThrowAsync $ f syncE asyncE
+
+                -- removing this case from consideration, since cleanup handlers
+                -- cannot receive async exceptions. See
+                -- https://github.com/fpco/safe-exceptions/issues/2
+                --
+                -- it "sync/async" $ shouldThrowAsync $ f syncE asyncE
+
                 it "async/sync" $ shouldThrowAsync $ f asyncE syncE
                 it "async/async" $ shouldThrowAsync $ f asyncE asyncE
         describe "onException" $ withPairs $ \e1 e2 -> e1 `onException` e2
         describe "withException" $ withPairs $ \e1 e2 -> e1 `withException` (\(_ :: SomeException) -> e2)
-        describe "bracket_" $ withPairs $ \e1 e2 -> bracket_ (return ()) e1 e2
+        describe "bracket_" $ withPairs $ \e1 e2 -> bracket_ (return ()) e2 e1
         describe "finally" $ withPairs $ \e1 e2 -> e1 `finally` e2
-        describe "bracketOnError_" $ withPairs $ \e1 e2 -> bracketOnError_ (return ()) e1 e2
+        describe "bracketOnError_" $ withPairs $ \e1 e2 -> bracketOnError_ (return ()) e2 e1
