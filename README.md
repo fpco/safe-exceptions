@@ -147,7 +147,7 @@ dealing with this:
   certain exception types are only thrown synchronously and certain
   only asynchronously.
 
-Both of these approaches have downsides. For the downsides the
+Both of these approaches have downsides. For the downsides of the
 type-based approach, see the caveats section at the end. The problems
 with the first are more interesting to us here:
 
