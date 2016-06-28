@@ -138,7 +138,10 @@ dealing with this:
   anyone else, and assume that any exception that kills it is a
   synchronous exception. This approach is covered in the School of
   Haskell article
-  [catching all exceptions](https://www.schoolofhaskell.com/user/snoyberg/general-haskell/exceptions/catching-all-exceptions).
+  [catching all exceptions](https://www.schoolofhaskell.com/user/snoyberg/general-haskell/exceptions/catching-all-exceptions),
+  and is provided by the
+  [enclosed-exceptions](https://www.stackage.org/package/enclosed-exceptions)
+  package.
 
 * Make assumptions based on the type of an exception, assuming that
   certain exception types are only thrown synchronously and certain
