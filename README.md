@@ -319,7 +319,12 @@ twofold:
   like to be able to detect the we entered a deadlock condition and do
   something intelligent in an application.
 
+## Possible future changes
+
 ### Interruptible vs uninterruptible masking
+
+This discussion is now being tracked at:
+https://github.com/fpco/safe-exceptions/issues/3
 
 In `Control.Exception`, allocation functions and cleanup handlers in
 combinators like `bracket` are masked using the (interruptible) `mask`
@@ -340,3 +345,8 @@ decision (and one worth debating!). An example of alternatives would be:
 * Use `uninterruptibleMask` for both allocation and cleanup pieces
 * Match `Control.Exception`'s behavior
 * Provide two versions of each function, or possibly two modules
+
+### Naming of the synchronous monadic throwing function
+
+We may decide to rename `throw` to something else at some point. Please see
+https://github.com/fpco/safe-exceptions/issues/4
