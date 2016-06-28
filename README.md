@@ -2,8 +2,9 @@
 
 *Safe, consistent, and easy exception handling*
 
-__WARNING__: This library is not yet intended for real world use, caveat
-emptor!!!
+__NOTE__: This library is early in its development, and there may be some
+changes in the near future. See [possible future
+changes](-exceptions#possible-future-changes).
 
 [![Build Status](https://travis-ci.org/fpco/safe-exceptions.svg?branch=master)](https://travis-ci.org/fpco/safe-exceptions)
 
