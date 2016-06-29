@@ -60,6 +60,9 @@ module Control.Exception.Safe
     , SomeException (..)
     , SomeAsyncException (..)
     , E.IOException
+#if !MIN_VERSION_base(4,8,0)
+    , displayException
+#endif
     ) where
 
 import Control.Concurrent (ThreadId)
@@ -343,3 +346,13 @@ isSyncException e =
 isAsyncException :: Exception e => e -> Bool
 isAsyncException = not . isSyncException
 {-# INLINE isAsyncException #-}
+
+#if !MIN_VERSION_base(4,8,0)
+-- | A synonym for 'show', specialized to 'Exception' instances.
+--
+-- Starting with base 4.8, the 'Exception' typeclass has a method @displayException@, used for user-friendly display of exceptions. This function provides backwards compatibility for users on base 4.7 and earlier, so that anyone importing this module can simply use @displayException@.
+--
+-- @since 0.1.1.0
+displayException :: Exception e => e -> String
+displayException = show
+#endif
