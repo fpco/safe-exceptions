@@ -59,6 +59,7 @@ correctly.
 * If you need to perform some allocation or cleanup of resources, use
   one of the following functions (and _don't_ use the
   `catch`/`handle`/`try` family of functions):
+
     * `onException`
     * `withException`
     * `bracket`
