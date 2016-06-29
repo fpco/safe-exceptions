@@ -2,7 +2,7 @@ name:                safe-exceptions
 version:             0.1.1.0
 synopsis:            Safe, consistent, and easy exception handling
 description:         Please see README.md
-homepage:            https://github.com/githubuser/safe-exceptions#readme
+homepage:            https://github.com/fpco/safe-exceptions#readme
 license:             MIT
 license-file:        LICENSE
 author:              Michael Snoyman
