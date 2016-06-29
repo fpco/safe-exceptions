@@ -110,7 +110,8 @@ throwTo tid = liftIO . E.throwTo tid . toAsyncException
 impureThrow :: Exception e => e -> a
 impureThrow = E.throw . toSyncException
 
--- | Flipped version of 'catch'
+-- | Same as upstream 'C.catch', but will not catch asynchronous
+-- exceptions
 --
 -- @since 0.1.0.0
 catch :: (C.MonadCatch m, Exception e) => m a -> (e -> m a) -> m a
