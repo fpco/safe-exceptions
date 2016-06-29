@@ -10,7 +10,7 @@ maintainer:          michael@fpcomplete.com
 copyright:           2016 FP Complete
 category:            Control
 build-type:          Simple
-extra-source-files:  README.md ChangeLog.md
+extra-source-files:  README.md ChangeLog.md COOKBOOK.md
 cabal-version:       >=1.10
 
 library

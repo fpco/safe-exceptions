@@ -68,11 +68,9 @@ correctly.
     * `bracketOnError`
     * `bracketOnError_`
 
-Hopefully this will be able to get you up-and-running quickly.
-
-_Request to readers_: if there are specific workflows that you're
-unsure of how to accomplish with this library, please ask so we can
-develop a more full-fledged cookbook as a companion to this file.
+Hopefully this will be able to get you up-and-running quickly. You may
+also be interested in
+[browsing through the cookbook](https://github.com/fpco/safe-exceptions/blob/master/COOKBOOK.md).
 
 ## Terminology
 
