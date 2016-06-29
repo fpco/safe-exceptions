@@ -103,4 +103,5 @@ spec = do
             res `shouldBe` ()
         describe "tryAnyDeep" $ withAll $ \e _ -> do
             res <- tryAnyDeep (return (impureThrow e))
-            shouldBeSync res
+            -- deal with a missing NFData instance
+            shouldBeSync $ either Left (\() -> Right undefined) res
