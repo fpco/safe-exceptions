@@ -105,7 +105,7 @@ throwTo tid = liftIO . E.throwTo tid . toAsyncException
 --
 -- @since 0.1.0.0
 impureThrow :: Exception e => e -> a
-impureThrow = E.throw
+impureThrow = E.throw . toSyncException
 
 -- | Flipped version of 'catch'
 --
