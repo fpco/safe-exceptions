@@ -93,3 +93,14 @@ spec = do
         describe "bracket_" $ withPairs $ \e1 e2 -> bracket_ (return ()) e2 e1
         describe "finally" $ withPairs $ \e1 e2 -> e1 `finally` e2
         describe "bracketOnError_" $ withPairs $ \e1 e2 -> bracketOnError_ (return ()) e2 e1
+
+    describe "deepseq" $ do
+        describe "catchAnyDeep" $ withAll $ \e _ -> do
+            res <- return (impureThrow e) `catchAnyDeep` \_ -> return ()
+            res `shouldBe` ()
+        describe "handleAnyDeep" $ withAll $ \e _ -> do
+            res <- handleAnyDeep (const $ return ()) (return (impureThrow e))
+            res `shouldBe` ()
+        describe "tryAnyDeep" $ withAll $ \e _ -> do
+            res <- tryAnyDeep (return (impureThrow e))
+            shouldBeSync res
