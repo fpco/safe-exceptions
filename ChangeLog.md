@@ -2,6 +2,7 @@
 
 * Add missing `toSyncException` inside `impureThrow`
 * Conditionally export `displayException` for older GHCs
+* Re-export `Typeable`
 
 ## 0.1.0.0
 

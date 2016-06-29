@@ -57,6 +57,7 @@ module Control.Exception.Safe
     -- FIXME , C.tryIOError
     , C.Handler (..)
     , Exception (..)
+    , Typeable
     , SomeException (..)
     , SomeAsyncException (..)
     , E.IOException
