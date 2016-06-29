@@ -227,7 +227,7 @@ There are a few choices of naming that differ from the base libraries:
 * The `catch` function in this package will not catch async
   exceptions. Please use `catchAsync` if you really want to catch
   those, though it's usually better to use a function like `bracket`
-  or `withException` with ensure that the thrown exception is
+  or `withException` which ensure that the thrown exception is
   rethrown.
 
 ## Caveats
@@ -258,7 +258,7 @@ return different types of exceptions, usually by wrapping all possible
 exceptions in a sum type.
 
 This library isn't meant to settle the debate on checked vs unchecked,
-by rather to bring sanity to Haskell's runtime exception system. As
+but rather to bring sanity to Haskell's runtime exception system. As
 such, this library is decidedly in the unchecked exception camp,
 purely by virtue of the fact that the underlying mechanism is as well.
 
@@ -320,7 +320,7 @@ twofold:
 * By our standards of recoverable vs non-recoverable, these exceptions
   certainly fall into the recoverable category. Unlike an intentional
   kill signal from another thread or the user (via Ctrl-C), we would
-  like to be able to detect the we entered a deadlock condition and do
+  like to be able to detect that we entered a deadlock condition and do
   something intelligent in an application.
 
 ## Possible future changes
