@@ -348,8 +348,3 @@ decision (and one worth debating!). An example of alternatives would be:
 * Use `uninterruptibleMask` for both allocation and cleanup pieces
 * Match `Control.Exception`'s behavior
 * Provide two versions of each function, or possibly two modules
-
-### Naming of the synchronous monadic throwing function
-
-We may decide to rename `throw` to something else at some point. Please see
-https://github.com/fpco/safe-exceptions/issues/4
