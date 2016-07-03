@@ -18,14 +18,20 @@ module Control.Exception.Safe
       -- * Catching (with recovery)
     , catch
     , catchAny
+    , catchDeep
+    , catchAnyDeep
     , catchAsync
 
     , handle
     , handleAny
+    , handleDeep
+    , handleAnyDeep
     , handleAsync
 
     , try
     , tryAny
+    , tryDeep
+    , tryAnyDeep
     , tryAsync
 
       -- * Cleanup (no recovery)
@@ -67,6 +73,7 @@ module Control.Exception.Safe
     ) where
 
 import Control.Concurrent (ThreadId)
+import Control.DeepSeq (($!!), NFData)
 import Control.Exception (Exception (..), SomeException (..), SomeAsyncException (..))
 import qualified Control.Exception as E
 import qualified Control.Monad.Catch as C
@@ -129,6 +136,26 @@ catch f g = f `C.catch` \e ->
 catchAny :: C.MonadCatch m => m a -> (SomeException -> m a) -> m a
 catchAny = catch
 
+-- | Same as 'catch', but fully force evaluation of the result value
+-- to find all impure exceptions.
+--
+-- @since 0.1.1.0
+catchDeep :: (C.MonadCatch m, MonadIO m, Exception e, NFData a)
+          => m a -> (e -> m a) -> m a
+catchDeep = catch . evaluateDeep
+
+-- | Internal helper function
+evaluateDeep :: (MonadIO m, NFData a) => m a -> m a
+evaluateDeep action = do
+    res <- action
+    liftIO (E.evaluate $!! res)
+
+-- | 'catchDeep' specialized to catch all synchronous exception
+--
+-- @since 0.1.1.0
+catchAnyDeep :: (C.MonadCatch m, MonadIO m, NFData a) => m a -> (SomeException -> m a) -> m a
+catchAnyDeep = catchDeep
+
 -- | 'catch' without async exception safety
 --
 -- Generally it's better to avoid using this function since we do not want to
@@ -150,6 +177,18 @@ handle = flip catch
 -- @since 0.1.0.0
 handleAny :: C.MonadCatch m => (SomeException -> m a) -> m a -> m a
 handleAny = flip catchAny
+
+-- | Flipped version of 'catchDeep'
+--
+-- @since 0.1.1.0
+handleDeep :: (C.MonadCatch m, Exception e, MonadIO m, NFData a) => (e -> m a) -> m a -> m a
+handleDeep = flip catchDeep
+
+-- | Flipped version of 'catchAnyDeep'
+--
+-- @since 0.1.1.0
+handleAnyDeep :: (C.MonadCatch m, MonadIO m, NFData a) => (SomeException -> m a) -> m a -> m a
+handleAnyDeep = flip catchAnyDeep
 
 -- | Flipped version of 'catchAsync'
 --
@@ -173,6 +212,19 @@ try f = catch (liftM Right f) (return . Left)
 -- @since 0.1.0.0
 tryAny :: C.MonadCatch m => m a -> m (Either SomeException a)
 tryAny = try
+
+-- | Same as 'try', but fully force evaluation of the result value
+-- to find all impure exceptions.
+--
+-- @since 0.1.1.0
+tryDeep :: (C.MonadCatch m, MonadIO m, E.Exception e, NFData a) => m a -> m (Either e a)
+tryDeep f = catch (liftM Right (evaluateDeep f)) (return . Left)
+
+-- | 'tryDeep' specialized to catch all synchronous exceptions
+--
+-- @since 0.1.1.0
+tryAnyDeep :: (C.MonadCatch m, MonadIO m, NFData a) => m a -> m (Either SomeException a)
+tryAnyDeep = tryDeep
 
 -- | 'try' without async exception safety
 --
