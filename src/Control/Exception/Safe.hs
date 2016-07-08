@@ -34,6 +34,11 @@ module Control.Exception.Safe
     , tryAnyDeep
     , tryAsync
 
+    , Handler(..)
+    , catches
+    , catchesDeep
+    , catchesAsync
+
       -- * Cleanup (no recovery)
     , onException
     , bracket
@@ -61,7 +66,6 @@ module Control.Exception.Safe
     , C.catchIOError
     , C.handleIOError
     -- FIXME , C.tryIOError
-    , C.Handler (..)
     , Exception (..)
     , Typeable
     , SomeException (..)
@@ -410,3 +414,37 @@ isAsyncException = not . isSyncException
 displayException :: Exception e => e -> String
 displayException = show
 #endif
+
+-- | You need this when using 'catches'.
+data Handler m a = forall e . (Exception e) => Handler (e -> m a)
+
+-- | Same as upstream 'C.catches', but will not catch asynchronous
+-- exceptions
+--
+-- @since 0.1.2.0
+catches :: (C.MonadCatch m, C.MonadThrow m) => m a -> [Handler m a] -> m a
+catches io handlers = io `catch` catchesHandler handlers
+
+-- | Same as 'catches', but fully force evaluation of the result value
+-- to find all impure exceptions.
+--
+-- @since 0.1.2.0
+catchesDeep :: (C.MonadCatch m, C.MonadThrow m, MonadIO m, NFData a) => m a -> [Handler m a] -> m a
+catchesDeep io handlers = evaluateDeep io `catch` catchesHandler handlers
+
+-- | 'catches' without async exception safety
+--
+-- Generally it's better to avoid using this function since we do not want to
+-- recover from async exceptions, see
+-- <https://github.com/fpco/safe-exceptions#quickstart>
+--
+-- @since 0.1.2.0
+catchesAsync :: (C.MonadCatch m, C.MonadThrow m) => m a -> [Handler m a] -> m a
+catchesAsync io handlers = io `catchAsync` catchesHandler handlers
+
+catchesHandler :: (C.MonadThrow m) => [Handler m a] -> SomeException -> m a
+catchesHandler handlers e = foldr tryHandler (C.throwM e) handlers
+    where tryHandler (Handler handler) res
+              = case fromException e of
+                Just e' -> handler e'
+                Nothing -> res
