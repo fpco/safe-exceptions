@@ -105,3 +105,6 @@ spec = do
             res <- tryAnyDeep (return (impureThrow e))
             -- deal with a missing NFData instance
             shouldBeSync $ either Left (\() -> Right undefined) res
+        describe "catchesDeep" $ withAll $ \e _ -> do
+            res <- return (impureThrow e) `catchesDeep` [Handler (\(_ :: SomeException) -> return ())]
+            res `shouldBe` ()
