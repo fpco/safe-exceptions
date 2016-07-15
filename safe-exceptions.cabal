@@ -1,5 +1,5 @@
 name:                safe-exceptions
-version:             0.1.2.0
+version:             0.1.3.0
 synopsis:            Safe, consistent, and easy exception handling
 description:         Please see README.md
 homepage:            https://github.com/fpco/safe-exceptions#readme

@@ -17,18 +17,21 @@ module Control.Exception.Safe
     , impureThrow
       -- * Catching (with recovery)
     , catch
+    , catchIO
     , catchAny
     , catchDeep
     , catchAnyDeep
     , catchAsync
 
     , handle
+    , handleIO
     , handleAny
     , handleDeep
     , handleAnyDeep
     , handleAsync
 
     , try
+    , tryIO
     , tryAny
     , tryDeep
     , tryAnyDeep
@@ -134,6 +137,12 @@ catch f g = f `C.catch` \e ->
         -- since we want to preserve async behavior
         else C.throwM e
 
+-- | 'C.catch' specialized to only catching 'E.IOException's
+--
+-- @since 0.1.3.0
+catchIO :: C.MonadCatch m => m a -> (E.IOException -> m a) -> m a
+catchIO = C.catch
+
 -- | 'catch' specialized to catch all synchronous exception
 --
 -- @since 0.1.0.0
@@ -176,6 +185,13 @@ catchAsync = C.catch
 handle :: (C.MonadCatch m, Exception e) => (e -> m a) -> m a -> m a
 handle = flip catch
 
+-- | 'C.handle' specialized to only catching 'E.IOException's
+--
+-- @since 0.1.3.0
+handleIO :: C.MonadCatch m => (E.IOException -> m a) -> m a -> m a
+handleIO = C.handle
+
+
 -- | Flipped version of 'catchAny'
 --
 -- @since 0.1.0.0
@@ -210,6 +226,12 @@ handleAsync = C.handle
 -- @since 0.1.0.0
 try :: (C.MonadCatch m, E.Exception e) => m a -> m (Either e a)
 try f = catch (liftM Right f) (return . Left)
+
+-- | 'C.try' specialized to only catching 'E.IOException's
+--
+-- @since 0.1.3.0
+tryIO :: C.MonadCatch m => m a -> m (Either E.IOException a)
+tryIO = C.try
 
 -- | 'try' specialized to catch all synchronous exceptions
 --

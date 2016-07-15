@@ -1,3 +1,7 @@
+## 0.1.3.0
+
+* Add `catchIO`, `handleIO`, and `tryIO`
+
 ## 0.1.2.0
 
 * Added `catches` [#13](https://github.com/fpco/safe-exceptions/issues/13)
