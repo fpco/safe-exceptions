@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Control.Exception.SafeSpec (spec) where
 
@@ -6,12 +7,13 @@ import Control.Exception (assert, ArithException (..), AsyncException (..), Bloc
 import qualified Control.Exception as E
 import Control.Exception.Safe
 import Control.Monad (forever)
+import Data.Typeable (Typeable)
 import Data.Void (Void, absurd)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Timeout (timeout)
 import Test.Hspec
 
-newtype ExceptionPred = ExceptionPred { getExceptionPred :: Maybe () } deriving (Show, Eq)
+newtype ExceptionPred = ExceptionPred { getExceptionPred :: Maybe () } deriving (Show, Eq, Typeable)
 
 instance Exception ExceptionPred
 
