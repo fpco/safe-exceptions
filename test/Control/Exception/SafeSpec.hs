@@ -11,6 +11,10 @@ import System.IO.Unsafe (unsafePerformIO)
 import System.Timeout (timeout)
 import Test.Hspec
 
+newtype ExceptionPred = ExceptionPred { getExceptionPred :: Maybe () } deriving (Show, Eq)
+
+instance Exception ExceptionPred
+
 -- | Ugly hack needed because the underlying type is not exported
 timeoutException :: SomeException
 timeoutException =
@@ -108,3 +112,13 @@ spec = do
         describe "catchesDeep" $ withAll $ \e _ -> do
             res <- return (impureThrow e) `catchesDeep` [Handler (\(_ :: SomeException) -> return ())]
             res `shouldBe` ()
+
+    describe "catchJust" $ do
+      it "catches a selected exception" $ do
+        res <- catchJust getExceptionPred (throw (ExceptionPred (Just ()))) (return . Just)
+        res `shouldBe` Just ()
+
+      it "re-raises a selection that is passed on" $ do
+        let ex = ExceptionPred Nothing
+        res <- try (catchJust getExceptionPred (throw ex) (return . Just))
+        res `shouldBe` Left ex
