@@ -1,3 +1,7 @@
+## 0.1.4.0
+
+* Add `catchJust`, `handleJust`, and `tryJust`
+
 ## 0.1.3.0
 
 * Add `catchIO`, `handleIO`, and `tryIO`
