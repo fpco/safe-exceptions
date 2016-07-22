@@ -185,6 +185,8 @@ catchAsync = C.catch
 -- | 'catchJust' is like 'catch' but it takes an extra argument which
 -- is an exception predicate, a function which selects which type of
 -- exceptions we're interested in.
+--
+-- @since 0.1.4.0
 catchJust :: (C.MonadCatch m, Exception e) => (e -> Maybe b) -> m a -> (b -> m a) -> m a
 catchJust f a b = a `catch` \e -> maybe (throwM e) b $ f e
 
@@ -230,6 +232,8 @@ handleAsync :: (C.MonadCatch m, Exception e) => (e -> m a) -> m a -> m a
 handleAsync = C.handle
 
 -- | Flipped 'catchJust'.
+--
+-- @since 0.1.4.0
 handleJust :: (C.MonadCatch m, Exception e) => (e -> Maybe b) -> (b -> m a) -> m a -> m a
 handleJust f = flip (catchJust f)
 
@@ -277,6 +281,8 @@ tryAsync = C.try
 
 -- | A variant of 'try' that takes an exception predicate to select
 -- which exceptions are caught.
+--
+-- @since 0.1.4.0
 tryJust :: (C.MonadCatch m, Exception e) => (e -> Maybe b) -> m a -> m (Either b a)
 tryJust f a = catch (Right `liftM` a) (\e -> maybe (throwM e) (return . Left) (f e))
 
