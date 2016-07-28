@@ -2,10 +2,6 @@
 
 *Safe, consistent, and easy exception handling*
 
-__NOTE__: This library is early in its development, and there may be some
-changes in the near future. See [possible future
-changes](#possible-future-changes).
-
 [![Build Status](https://travis-ci.org/fpco/safe-exceptions.svg?branch=master)](https://travis-ci.org/fpco/safe-exceptions)
 
 Runtime exceptions - as exposed in `base` by the `Control.Exception`
@@ -71,6 +67,9 @@ correctly.
 Hopefully this will be able to get you up-and-running quickly. You may
 also be interested in
 [browsing through the cookbook](https://github.com/fpco/safe-exceptions/blob/master/COOKBOOK.md).
+There is also an
+[exception safety tutorial on haskell-lang.org](https://haskell-lang.org/tutorial/exception-safety)
+which is based on this package.
 
 ## Terminology
 
@@ -321,30 +320,3 @@ twofold:
   kill signal from another thread or the user (via Ctrl-C), we would
   like to be able to detect that we entered a deadlock condition and do
   something intelligent in an application.
-
-## Possible future changes
-
-### Interruptible vs uninterruptible masking
-
-This discussion is now being tracked at:
-https://github.com/fpco/safe-exceptions/issues/3
-
-In `Control.Exception`, allocation functions and cleanup handlers in
-combinators like `bracket` are masked using the (interruptible) `mask`
-function, in contrast to `uninterruptibleMask`. There have been some debates
-about the correctness of this in the past, notably [a libraries mailing list
-discussion kicked off by Eyal
-Lotem](https://mail.haskell.org/pipermail/libraries/2014-September/023675.html).
-It seems that general consensus is:
-
-* `uninterruptibleMask` is a better choice
-* But changing the core library like this would potentially break too many
-  programs
-
-In its current version, this library uses `mask` (interruptible) for allocation
-functions and `uninterruptibleMask` cleanup handlers. This is a debatable
-decision (and one worth debating!). An example of alternatives would be:
-
-* Use `uninterruptibleMask` for both allocation and cleanup pieces
-* Match `Control.Exception`'s behavior
-* Provide two versions of each function, or possibly two modules
