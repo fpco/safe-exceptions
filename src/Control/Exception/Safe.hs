@@ -172,7 +172,9 @@ evaluateDeep action = do
 catchAnyDeep :: (C.MonadCatch m, MonadIO m, NFData a) => m a -> (SomeException -> m a) -> m a
 catchAnyDeep = catchDeep
 
--- | 'catch' without async exception safety
+-- | 'catch' without async exception safety.
+--
+-- Will catch extension types which are children of 'Control.Exception.SomeAsyncException', see <https://github.com/fpco/safe-exceptions#determining-sync-vs-async>
 --
 -- Generally it's better to avoid using this function since we do not want to
 -- recover from async exceptions, see
@@ -269,7 +271,9 @@ tryDeep f = catch (liftM Right (evaluateDeep f)) (return . Left)
 tryAnyDeep :: (C.MonadCatch m, MonadIO m, NFData a) => m a -> m (Either SomeException a)
 tryAnyDeep = tryDeep
 
--- | 'try' without async exception safety
+-- | 'try' without async exception safety.
+--
+-- Will catch extension types which are children of 'Control.Exception.SomeAsyncException', see <https://github.com/fpco/safe-exceptions#determining-sync-vs-async>
 --
 -- Generally it's better to avoid using this function since we do not want to
 -- recover from async exceptions, see
@@ -478,7 +482,9 @@ catches io handlers = io `catch` catchesHandler handlers
 catchesDeep :: (C.MonadCatch m, C.MonadThrow m, MonadIO m, NFData a) => m a -> [Handler m a] -> m a
 catchesDeep io handlers = evaluateDeep io `catch` catchesHandler handlers
 
--- | 'catches' without async exception safety
+-- | 'catches' without async exception safety.
+--
+-- Will catch extension types which are children of 'Control.Exception.SomeAsyncException', see <https://github.com/fpco/safe-exceptions#determining-sync-vs-async>
 --
 -- Generally it's better to avoid using this function since we do not want to
 -- recover from async exceptions, see
