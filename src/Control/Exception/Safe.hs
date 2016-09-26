@@ -109,7 +109,11 @@ throwIO = throw
 throwM :: (C.MonadThrow m, Exception e) => e -> m a
 throwM = throw
 
--- | Throw an asynchronous exception to another thread
+-- | Throw an asynchronous exception to another thread.
+--
+-- Synchronously typed exceptions will be wrapped into an
+-- `AsyncExceptionWrapper`, see
+-- <https://github.com/fpco/safe-exceptions#determining-sync-vs-async>
 --
 -- It's usually a better idea to use the async package, see
 -- <https://github.com/fpco/safe-exceptions#quickstart>
