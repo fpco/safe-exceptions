@@ -164,8 +164,8 @@ with the first are more interesting to us here:
 Therefore, this package takes the approach of trusting type
 information to determine if an exception is asynchronous or
 synchronous. The details are less interesting to a user, but the
-basics are: we leverage the extensible extension system in GHC and
-state that any extension type which is a child of `SomeAsyncException`
+basics are: we leverage the extensible exception system in GHC and
+state that any exception type which is a child of `SomeAsyncException`
 is an async exception. All other exception types are assumed to be
 synchronous.
 
