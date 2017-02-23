@@ -7,10 +7,13 @@
 Runtime exceptions - as exposed in `base` by the `Control.Exception`
 module - have long been an intimidating part of the Haskell
 ecosystem. This package, and this README for the package, are intended
-to overcome this. By providing an API that encourages best practices,
-and explaining the corner cases clearly, the hope is to turn what was
-previously something scary into an aspect of Haskell everyone feels
-safe using.
+to overcome this. It provides a safe and simple API on top of the
+existing exception handling machinery. The API is equivalent to the
+underlying implementation in terms of power but encourages best
+practices to minimize the chances of getting the exception handling
+wrong.  By doing so and explaining the corner cases clearly, the hope is
+to turn what was previously something scary into an aspect of Haskell
+everyone feels safe using.
 
 ## Goals
 
