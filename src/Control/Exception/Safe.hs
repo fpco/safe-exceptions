@@ -77,6 +77,7 @@ module Control.Exception.Safe
     , SomeException (..)
     , SomeAsyncException (..)
     , E.IOException
+    , E.assert
 #if !MIN_VERSION_base(4,8,0)
     , displayException
 #endif
