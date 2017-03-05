@@ -330,7 +330,7 @@ bracket before after thing = C.mask $ \restore -> do
                 C.try $ C.uninterruptibleMask_ $ after x
             C.throwM e1
         Right y -> do
-            C.uninterruptibleMask_ $ after x
+            _ <- C.uninterruptibleMask_ $ after x
             return y
 
 -- | Async safe version of 'E.bracket_'
@@ -351,7 +351,7 @@ finally thing after = C.uninterruptibleMask $ \restore -> do
             _ :: Either SomeException b <- C.try after
             C.throwM e1
         Right x -> do
-            after
+            _ <- after
             return x
 
 -- | Async safe version of 'E.bracketOnError'
