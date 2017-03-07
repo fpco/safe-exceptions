@@ -1,6 +1,7 @@
 ## 0.1.5.0
 
 * Re-export `Control.Exception.assert`
+* Add `throwString`
 
 ## 0.1.4.0
 

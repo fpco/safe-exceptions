@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ImplicitParams #-}
 -- | Please see the README.md file in the safe-exceptions repo for
 -- information on how to use this module. Relevant links:
 --
@@ -13,6 +14,8 @@ module Control.Exception.Safe
       throw
     , throwIO
     , throwM
+    , throwString
+    , StringException (..)
     , throwTo
     , impureThrow
       -- * Catching (with recovery)
@@ -92,6 +95,11 @@ import Control.Monad (liftM)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Typeable (Typeable, cast)
 
+#if MIN_VERSION_base(4,9,0)
+import GHC.Stack (prettySrcLoc)
+import GHC.Stack.Types (HasCallStack, CallStack, getCallStack)
+#endif
+
 -- | Synchronously throw the given exception
 --
 -- @since 0.1.0.0
@@ -109,6 +117,59 @@ throwIO = throw
 -- @since 0.1.0.0
 throwM :: (C.MonadThrow m, Exception e) => e -> m a
 throwM = throw
+
+-- | A convenience function for throwing a user error. This is useful
+-- for cases where it would be too high a burden to define your own
+-- exception type.
+--
+-- This throws an exception of type 'StringException'. When GHC
+-- supports it (base 4.9 and GHC 8.0 and onward), it includes a call
+-- stack.
+--
+-- @since 0.1.5.0
+#if MIN_VERSION_base(4,9,0)
+throwString :: (C.MonadThrow m, HasCallStack) => String -> m a
+throwString s = throwM (StringException s ?callStack)
+#else
+throwString :: C.MonadThrow m => String -> m a
+throwString s = throwM (StringException s ())
+#endif
+
+-- | Exception type thrown by 'throwString'.
+--
+-- Note that the second field of the data constructor depends on
+-- GHC/base version. For base 4.9 and GHC 8.0 and later, the second
+-- field is a call stack. Previous versions of GHC and base do not
+-- support call stacks, and the field is simply unit (provided to make
+-- pattern matching across GHC versions easier).
+--
+-- @since 0.1.5.0
+#if MIN_VERSION_base(4,9,0)
+data StringException = StringException String CallStack
+  deriving Typeable
+
+instance Show StringException where
+    show (StringException s cs) = concat
+        $ "Control.Exception.Safe.throwString called with:\n\n"
+        : s
+        : "\nCalled from:\n"
+        : map go (getCallStack cs)
+      where
+        go (x, y) = concat
+          [ "  "
+          , x
+          , " ("
+          , prettySrcLoc y
+          , ")\n"
+          ]
+#else
+data StringException = StringException String ()
+  deriving Typeable
+
+instance Show StringException where
+    show (StringException s _) = "Control.Exception.Safe.throwString called with:\n\n" ++ s
+#endif
+instance Exception StringException
 
 -- | Throw an asynchronous exception to another thread.
 --
