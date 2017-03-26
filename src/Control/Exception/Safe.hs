@@ -431,7 +431,8 @@ bracketOnError before after thing = C.mask $ \restore -> do
             C.throwM e1
         Right y -> return y
 
--- | Async safe version of 'E.bracketOnError_'
+-- | A variant of 'bracketOnError' where the return value from the first
+-- computation is not required.
 --
 -- @since 0.1.0.0
 bracketOnError_ :: C.MonadMask m => m a -> m b -> m c -> m c
