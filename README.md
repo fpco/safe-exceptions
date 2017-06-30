@@ -2,7 +2,9 @@
 
 *Safe, consistent, and easy exception handling*
 
-[![Build Status](https://travis-ci.org/fpco/safe-exceptions.svg?branch=master)](https://travis-ci.org/fpco/safe-exceptions)
+[![Build Status](https://travis-ci.org/fpco/safe-exceptions.svg?branch=master)](https://travis-ci.org/fpco/safe-exceptions) [![Stackage](http://stackage.org/package/safe-exceptions/badge/lts)](http://stackage.org/lts/package/safe-exceptions)
+
+> The documentation for this library is available on [Stackage](http://stackage.org/lts/package/safe-exceptions)
 
 Runtime exceptions - as exposed in `base` by the `Control.Exception`
 module - have long been an intimidating part of the Haskell
