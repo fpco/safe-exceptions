@@ -91,6 +91,7 @@ import Control.DeepSeq (($!!), NFData)
 import Control.Exception (Exception (..), SomeException (..), SomeAsyncException (..))
 import qualified Control.Exception as E
 import qualified Control.Monad.Catch as C
+import Control.Monad.Catch (Handler (..))
 import Control.Monad (liftM)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Typeable (Typeable, cast)
@@ -527,9 +528,6 @@ isAsyncException = not . isSyncException
 displayException :: Exception e => e -> String
 displayException = show
 #endif
-
--- | You need this when using 'catches'.
-data Handler m a = forall e . (Exception e) => Handler (e -> m a)
 
 -- | Same as upstream 'C.catches', but will not catch asynchronous
 -- exceptions

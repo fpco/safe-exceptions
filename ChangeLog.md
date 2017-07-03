@@ -1,3 +1,7 @@
+## 0.1.6.0
+
+* Reuse the `Handler` definition from `Control.Monad.Catch`
+
 ## 0.1.5.0
 
 * Re-export `Control.Exception.assert`
