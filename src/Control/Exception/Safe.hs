@@ -379,10 +379,7 @@ withException thing after = C.uninterruptibleMask $ \restore -> do
 -- @since 0.1.0.0
 bracket :: forall m a b c. C.MonadMask m
         => m a -> (a -> m b) -> (a -> m c) -> m c
-bracket before after = bracketWithError before after'
-  where
-    after' :: Maybe SomeException -> a -> m b
-    after' = const after
+bracket before after = bracketWithError before (const after)
 
 -- | Async safe version of 'E.bracket_'
 --
@@ -432,8 +429,8 @@ bracketOnError_ before after thing = bracketOnError before (const after) (const 
 -- cleanup action.
 --
 -- @since 0.1.0.0
-bracketWithError :: forall m a b c e. (C.MonadMask m, Exception e)
-        => m a -> (Maybe e -> a -> m b) -> (a -> m c) -> m c
+bracketWithError :: forall m a b c. C.MonadMask m
+        => m a -> (Maybe SomeException -> a -> m b) -> (a -> m c) -> m c
 bracketWithError before after thing = C.mask $ \restore -> do
     x <- before
     res1 <- C.try $ restore (thing x)
@@ -445,7 +442,7 @@ bracketWithError before after thing = C.mask $ \restore -> do
             --
             -- https://github.com/fpco/safe-exceptions/issues/2
             _ :: Either SomeException b <-
-                C.try $ C.uninterruptibleMask_ $ after (C.fromException e1) x
+                C.try $ C.uninterruptibleMask_ $ after (Just e1) x
             C.throwM e1
         Right y -> do
             _ <- C.uninterruptibleMask_ $ after Nothing x
