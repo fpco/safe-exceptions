@@ -376,7 +376,7 @@ withException thing after = C.uninterruptibleMask $ \restore -> do
 
 -- | Async safe version of 'E.bracket'
 --
--- @since 0.1.0.0
+-- @since 0.1.7.0
 bracket :: forall m a b c. C.MonadMask m
         => m a -> (a -> m b) -> (a -> m c) -> m c
 bracket before after = bracketWithError before (const after)
