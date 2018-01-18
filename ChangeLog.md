@@ -1,3 +1,7 @@
+## 0.1.7.0
+
+* Add `bracketWithError`
+
 ## 0.1.6.0
 
 * Reuse the `Handler` definition from `Control.Monad.Catch`

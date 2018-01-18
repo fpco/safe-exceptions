@@ -56,6 +56,7 @@ module Control.Exception.Safe
     , withException
     , bracketOnError
     , bracketOnError_
+    , bracketWithError
 
       -- * Coercion to sync and async
     , SyncExceptionWrapper (..)
@@ -375,25 +376,10 @@ withException thing after = C.uninterruptibleMask $ \restore -> do
 
 -- | Async safe version of 'E.bracket'
 --
--- @since 0.1.0.0
+-- @since 0.1.7.0
 bracket :: forall m a b c. C.MonadMask m
         => m a -> (a -> m b) -> (a -> m c) -> m c
-bracket before after thing = C.mask $ \restore -> do
-    x <- before
-    res1 <- C.try $ restore (thing x)
-    case res1 of
-        Left (e1 :: SomeException) -> do
-            -- explicitly ignore exceptions from after. We know that
-            -- no async exceptions were thrown there, so therefore
-            -- the stronger exception must come from thing
-            --
-            -- https://github.com/fpco/safe-exceptions/issues/2
-            _ :: Either SomeException b <-
-                C.try $ C.uninterruptibleMask_ $ after x
-            C.throwM e1
-        Right y -> do
-            _ <- C.uninterruptibleMask_ $ after x
-            return y
+bracket before after = bracketWithError before (const after)
 
 -- | Async safe version of 'E.bracket_'
 --
@@ -438,6 +424,29 @@ bracketOnError before after thing = C.mask $ \restore -> do
 -- @since 0.1.0.0
 bracketOnError_ :: C.MonadMask m => m a -> m b -> m c -> m c
 bracketOnError_ before after thing = bracketOnError before (const after) (const thing)
+
+-- | Async safe version of 'E.bracket' with access to the exception in the
+-- cleanup action.
+--
+-- @since 0.1.0.0
+bracketWithError :: forall m a b c. C.MonadMask m
+        => m a -> (Maybe SomeException -> a -> m b) -> (a -> m c) -> m c
+bracketWithError before after thing = C.mask $ \restore -> do
+    x <- before
+    res1 <- C.try $ restore (thing x)
+    case res1 of
+        Left (e1 :: SomeException) -> do
+            -- explicitly ignore exceptions from after. We know that
+            -- no async exceptions were thrown there, so therefore
+            -- the stronger exception must come from thing
+            --
+            -- https://github.com/fpco/safe-exceptions/issues/2
+            _ :: Either SomeException b <-
+                C.try $ C.uninterruptibleMask_ $ after (Just e1) x
+            C.throwM e1
+        Right y -> do
+            _ <- C.uninterruptibleMask_ $ after Nothing x
+            return y
 
 -- | Wrap up an asynchronous exception to be treated as a synchronous
 -- exception
