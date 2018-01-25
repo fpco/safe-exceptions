@@ -376,7 +376,7 @@ withException thing after = C.uninterruptibleMask $ \restore -> do
 
 -- | Async safe version of 'E.bracket'
 --
--- @since 0.1.7.0
+-- @since 0.1.0.0
 bracket :: forall m a b c. C.MonadMask m
         => m a -> (a -> m b) -> (a -> m c) -> m c
 bracket before after = bracketWithError before (const after)
@@ -428,7 +428,7 @@ bracketOnError_ before after thing = bracketOnError before (const after) (const 
 -- | Async safe version of 'E.bracket' with access to the exception in the
 -- cleanup action.
 --
--- @since 0.1.0.0
+-- @since 0.1.7.0
 bracketWithError :: forall m a b c. C.MonadMask m
         => m a -> (Maybe SomeException -> a -> m b) -> (a -> m c) -> m c
 bracketWithError before after thing = C.mask $ \restore -> do
