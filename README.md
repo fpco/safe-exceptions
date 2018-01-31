@@ -17,6 +17,13 @@ wrong.  By doing so and explaining the corner cases clearly, the hope is
 to turn what was previously something scary into an aspect of Haskell
 everyone feels safe using.
 
+__NOTE__ The `UnliftIO.Exception` module in [the `unliftio`
+library](https://www.stackage.org/package/unliftio) provides a very similar API
+to this module, but based around the `MonadUnliftIO` typeclass instead of
+`MonadCatch` and `MonadMask`. The [unliftio release
+announcement](https://www.fpcomplete.com/blog/2017/07/announcing-new-unliftio-library)
+explains why this may be considered preferable from a safety perspective.
+
 ## Goals
 
 This package provides additional safety and simplicity versus
