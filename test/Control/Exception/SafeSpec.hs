@@ -4,7 +4,7 @@
 module Control.Exception.SafeSpec (spec) where
 
 import Control.Concurrent (threadDelay, newEmptyMVar, forkIOWithUnmask, takeMVar, putMVar)
-import Control.Exception (assert, ArithException (..), AsyncException (..), BlockedIndefinitelyOnMVar (..), BlockedIndefinitelyOnSTM (..))
+import Control.Exception (ArithException (..), AsyncException (..), BlockedIndefinitelyOnMVar (..), BlockedIndefinitelyOnSTM (..))
 import qualified Control.Exception as E
 import Control.Exception.Safe
 import Control.Monad (forever)
