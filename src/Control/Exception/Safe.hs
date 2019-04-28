@@ -309,7 +309,7 @@ handleJust f = flip (catchJust f)
 -- exceptions
 --
 -- @since 0.1.0.0
-try :: (C.MonadCatch m, E.Exception e) => m a -> m (Either e a)
+try :: forall e m a. (C.MonadCatch m, E.Exception e) => m a -> m (Either e a)
 try f = catch (liftM Right f) (return . Left)
 
 -- | 'C.try' specialized to only catching 'E.IOException's
@@ -328,7 +328,7 @@ tryAny = try
 -- to find all impure exceptions.
 --
 -- @since 0.1.1.0
-tryDeep :: (C.MonadCatch m, MonadIO m, E.Exception e, NFData a) => m a -> m (Either e a)
+tryDeep :: forall e m a. (C.MonadCatch m, MonadIO m, E.Exception e, NFData a) => m a -> m (Either e a)
 tryDeep f = catch (liftM Right (evaluateDeep f)) (return . Left)
 
 -- | 'tryDeep' specialized to catch all synchronous exceptions
