@@ -1,3 +1,9 @@
+# ChangeLog for safe-exceptions
+
+## 0.1.7.1
+
+* Doc update
+
 ## 0.1.7.0
 
 * Add `bracketWithError`
