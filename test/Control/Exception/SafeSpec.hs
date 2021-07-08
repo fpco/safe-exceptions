@@ -8,6 +8,9 @@ import Control.Exception (ArithException (..), AsyncException (..), BlockedIndef
 import qualified Control.Exception as E
 import Control.Exception.Safe
 import Control.Monad (forever)
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Except (runExceptT, throwE)
+import Data.IORef (modifyIORef, newIORef, readIORef)
 import Data.Typeable (Typeable)
 import Data.Void (Void, absurd)
 import System.IO.Unsafe (unsafePerformIO)
@@ -49,6 +52,13 @@ exceptions =
 
 withAll :: (SomeException -> Bool -> IO ()) -> Spec
 withAll f = mapM_ (\(e, b) -> it (show e) (f e b)) exceptions
+
+data ResourceAction
+  = ResourceAcquire
+  | ResourceUse
+  | ResourceRelease
+  | ExceptionObserve ExceptionPred
+  deriving (Show, Eq)
 
 spec :: Spec
 spec = do
@@ -132,3 +142,50 @@ spec = do
     describe "throwString" $ do
       it "is a StringException" $
         throwString "foo" `catch` \(StringException _ _) -> return () :: IO ()
+
+    describe "bracketWithError" $ do
+      it "should prioritize exceptions from thing" $ do
+        actionLogRef <- newIORef []
+        eiResult <-
+          try $
+            Control.Exception.Safe.bracketWithError
+              ( do
+                  modifyIORef actionLogRef (ResourceAcquire :)
+              )
+              ( \mbEx () -> do
+                  case mbEx of
+                      Just ex | Just exPred <- fromException ex ->
+                          modifyIORef actionLogRef (ExceptionObserve exPred :)
+                      _ -> pure ()
+                  modifyIORef actionLogRef (ResourceRelease :)
+                  throw $ ExceptionPred $ Just ()
+              )
+              ( \() -> do
+                  modifyIORef actionLogRef (ResourceUse :)
+                  throw $ ExceptionPred Nothing
+                  pure ()
+              )
+        eiResult `shouldBe` Left (ExceptionPred Nothing)
+        readIORef actionLogRef
+          `shouldReturn` [ResourceRelease, ExceptionObserve (ExceptionPred Nothing), ResourceUse, ResourceAcquire]
+
+      it "should lift through ExceptT" $ do
+        actionLogRef <- newIORef []
+        eiResult <-
+          runExceptT $
+            Control.Exception.Safe.bracketWithError
+              ( do
+                  lift $ modifyIORef actionLogRef (ResourceAcquire :)
+              )
+              ( \_ () -> do
+                  lift $ modifyIORef actionLogRef (ResourceRelease :)
+              )
+              ( \() -> do
+                  lift $ modifyIORef actionLogRef (ResourceUse :)
+                  throwE $ ExceptionPred Nothing
+                  pure ()
+              )
+        eiResult `shouldBe` Left (ExceptionPred Nothing)
+        readIORef actionLogRef
+          `shouldReturn` [ResourceRelease, ResourceUse, ResourceAcquire]
+

@@ -1,5 +1,10 @@
 # ChangeLog for safe-exceptions
 
+## 0.1.7.2
+
+* Changed `bracketWithError` and `bracketOnError` to use `generalBracket` from `MonadMask` [#36](https://github.com/fpco/safe-exceptions/issues/36)
+* Raised dependency `exceptions` from `>= 0.8` to `>= 0.10`
+
 ## 0.1.7.1
 
 * Doc update
