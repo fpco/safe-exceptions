@@ -26,4 +26,11 @@ jobs:
             set -ex
             stack upgrade
             stack --version
+
+            # Work around for https://github.com/commercialhaskell/stack/pull/5577
+            if [[ "${{ runner.os }}" = 'Windows' ]]
+            then
+              rm C:/ProgramData/Chocolatey/bin/ghc*
+            fi
+
             stack test --fast --no-terminal --resolver=${{ matrix.resolver }}
