@@ -93,7 +93,7 @@ import Control.Exception (Exception (..), SomeException (..), SomeAsyncException
 import qualified Control.Exception as E
 import qualified Control.Monad.Catch as C
 import Control.Monad.Catch (Handler (..))
-import Control.Monad (liftM)
+import Control.Monad (liftM, void)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Typeable (Typeable, cast)
 
@@ -366,13 +366,12 @@ onException thing after = withException thing (\(_ :: SomeException) -> after)
 -- @since 0.1.0.0
 withException :: (C.MonadMask m, E.Exception e) => m a -> (e -> m b) -> m a
 withException thing after = C.uninterruptibleMask $ \restore -> do
-    res1 <- C.try $ restore thing
-    case res1 of
-        Left e1 -> do
-            -- see explanation in bracket
-            _ :: Either SomeException b <- C.try $ after e1
-            C.throwM e1
-        Right x -> return x
+    fmap fst $ C.generalBracket (pure ()) cAfter (const $ restore thing)
+  where
+    -- ignore the exception from after, see bracket for explanation
+    cAfter () (C.ExitCaseException se) | Just ex <- fromException se =
+        ignoreExceptions $ after ex
+    cAfter () _ = pure ()
 
 -- | Async safe version of 'E.bracket'
 --
@@ -392,31 +391,25 @@ bracket_ before after thing = bracket before (const after) (const thing)
 -- @since 0.1.0.0
 finally :: C.MonadMask m => m a -> m b -> m a
 finally thing after = C.uninterruptibleMask $ \restore -> do
-    res1 <- C.try $ restore thing
-    case res1 of
-        Left (e1 :: SomeException) -> do
-            -- see bracket for explanation
-            _ :: Either SomeException b <- C.try after
-            C.throwM e1
-        Right x -> do
-            _ <- after
-            return x
+    fmap fst $ C.generalBracket (pure ()) cAfter (const $ restore thing)
+  where
+    -- ignore the exception from after, see bracket for explanation
+    cAfter () (C.ExitCaseException se) =
+        ignoreExceptions after
+    cAfter () _ = void after
 
 -- | Async safe version of 'E.bracketOnError'
 --
 -- @since 0.1.0.0
 bracketOnError :: forall m a b c. C.MonadMask m
                => m a -> (a -> m b) -> (a -> m c) -> m c
-bracketOnError before after thing = C.mask $ \restore -> do
-    x <- before
-    res1 <- C.try $ restore (thing x)
-    case res1 of
-        Left (e1 :: SomeException) -> do
-            -- ignore the exception, see bracket for explanation
-            _ :: Either SomeException b <-
-                C.try $ C.uninterruptibleMask_ $ after x
-            C.throwM e1
-        Right y -> return y
+bracketOnError before after thing = fmap fst $ C.generalBracket before cAfter thing
+  where
+    -- ignore the exception from after, see bracket for explanation
+    cAfter x (C.ExitCaseException se) =
+        C.uninterruptibleMask_ $ ignoreExceptions $ after x
+    cAfter x _ = pure ()
+
 
 -- | A variant of 'bracketOnError' where the return value from the first
 -- computation is not required.
@@ -431,22 +424,21 @@ bracketOnError_ before after thing = bracketOnError before (const after) (const 
 -- @since 0.1.7.0
 bracketWithError :: forall m a b c. C.MonadMask m
         => m a -> (Maybe SomeException -> a -> m b) -> (a -> m c) -> m c
-bracketWithError before after thing = C.mask $ \restore -> do
-    x <- before
-    res1 <- C.try $ restore (thing x)
-    case res1 of
-        Left (e1 :: SomeException) -> do
-            -- explicitly ignore exceptions from after. We know that
-            -- no async exceptions were thrown there, so therefore
-            -- the stronger exception must come from thing
-            --
-            -- https://github.com/fpco/safe-exceptions/issues/2
-            _ :: Either SomeException b <-
-                C.try $ C.uninterruptibleMask_ $ after (Just e1) x
-            C.throwM e1
-        Right y -> do
-            _ <- C.uninterruptibleMask_ $ after Nothing x
-            return y
+bracketWithError before after thing = fmap fst $ C.generalBracket before cAfter thing
+  where
+    cAfter x (C.ExitCaseException se) =
+        C.uninterruptibleMask_ $ ignoreExceptions $ after (Just se) x
+    cAfter x _ =
+        void $ C.uninterruptibleMask_ $ after Nothing x
+
+-- | Internal function that swallows all exceptions, used in some bracket-like
+-- combinators. When it's run inside of uninterruptibleMask, we know that
+-- no async exceptions can be thrown from thing, so the other exception from
+-- the combinator will not be overridden.
+--
+-- https://github.com/fpco/safe-exceptions/issues/2
+ignoreExceptions :: C.MonadMask m => m a -> m ()
+ignoreExceptions thing = void thing `C.catch` (\(_ :: SomeException) -> pure ())
 
 -- | Wrap up an asynchronous exception to be treated as a synchronous
 -- exception
