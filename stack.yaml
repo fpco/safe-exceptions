@@ -1,3 +1,1 @@
-resolver: lts-10.5
-extra-deps:
-- exceptions-0.10.0
+resolver: lts-18.0
