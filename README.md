@@ -2,7 +2,8 @@
 
 *Safe, consistent, and easy exception handling*
 
-[![Build Status](https://travis-ci.org/fpco/safe-exceptions.svg?branch=master)](https://travis-ci.org/fpco/safe-exceptions) [![Stackage](http://stackage.org/package/safe-exceptions/badge/lts)](http://stackage.org/lts/package/safe-exceptions)
+[![Tests](https://github.com/fpco/safe-exceptions/actions/workflows/tests.yml/badge.svg)](https://github.com/fpco/safe-exceptions/actions/workflows/tests.yml)
+[![Stackage](http://stackage.org/package/safe-exceptions/badge/lts)](http://stackage.org/lts/package/safe-exceptions)
 
 > The documentation for this library is available on [Stackage](http://stackage.org/lts/package/safe-exceptions)
 
