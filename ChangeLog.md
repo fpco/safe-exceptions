@@ -1,5 +1,9 @@
 # ChangeLog for safe-exceptions
 
+## 0.1.7.3
+
+* Allow transformers 0.6 [#39](https://github.com/fpco/safe-exceptions/issues/39)
+
 ## 0.1.7.2
 
 * Changed `bracketWithError` and `bracketOnError` to use `generalBracket` from `MonadMask` [#36](https://github.com/fpco/safe-exceptions/issues/36)
