@@ -155,13 +155,13 @@ throw = C.throwM . toSyncException
 --
 -- @since 0.1.0.0
 throwIO :: HAS_CALL_STACK => (C.MonadThrow m, Exception e) => e -> m a
-throwIO = throw
+throwIO = withFrozenCallStack throw
 
 -- | Synonym for 'throw'
 --
 -- @since 0.1.0.0
 throwM :: HAS_CALL_STACK => (C.MonadThrow m, Exception e) => e -> m a
-throwM = throw
+throwM = withFrozenCallStack throw
 
 -- | A convenience function for throwing a user error. This is useful
 -- for cases where it would be too high a burden to define your own
@@ -226,7 +226,7 @@ instance Exception StringException
 -- <https://github.com/fpco/safe-exceptions#quickstart>
 --
 -- @since 0.1.0.0
-throwTo :: HAS_CALL_STACK => (Exception e, MonadIO m) => ThreadId -> e -> m ()
+throwTo :: (Exception e, MonadIO m) => ThreadId -> e -> m ()
 throwTo tid = liftIO . E.throwTo tid . toAsyncException
 
 -- | Generate a pure value which, when forced, will synchronously
@@ -299,7 +299,7 @@ catchAsync = C.catch
 --
 -- @since 0.1.4.0
 catchJust :: HAS_CALL_STACK => (C.MonadCatch m, Exception e) => (e -> Maybe b) -> m a -> (b -> m a) -> m a
-catchJust f a b = withFrozenCallStack a `catch` \e -> maybe (throwM e) b $ f e
+catchJust f a b = withFrozenCallStack catch a (\e -> maybe (throwM e) b $ f e)
 
 -- | Flipped version of 'catch'
 --
@@ -408,7 +408,7 @@ onException thing after = withFrozenCallStack withException thing (\(_ :: SomeEx
 --
 -- @since 0.1.0.0
 withException :: HAS_CALL_STACK => (C.MonadMask m, E.Exception e) => m a -> (e -> m b) -> m a
-withException thing after = withFrozenCallStack $ C.uninterruptibleMask $ \restore -> do
+withException thing after = C.uninterruptibleMask $ \restore -> do
     fmap fst $ C.generalBracket (pure ()) cAfter (const $ restore thing)
   where
     -- ignore the exception from after, see bracket for explanation
@@ -578,14 +578,14 @@ displayException = show
 --
 -- @since 0.1.2.0
 catches :: HAS_CALL_STACK => (C.MonadCatch m, C.MonadThrow m) => m a -> [Handler m a] -> m a
-catches io handlers = withFrozenCallStack io `catch` catchesHandler handlers
+catches io handlers = withFrozenCallStack catch io (catchesHandler handlers)
 
 -- | Same as 'catches', but fully force evaluation of the result value
 -- to find all impure exceptions.
 --
 -- @since 0.1.2.0
 catchesDeep :: HAS_CALL_STACK => (C.MonadCatch m, C.MonadThrow m, MonadIO m, NFData a) => m a -> [Handler m a] -> m a
-catchesDeep io handlers = withFrozenCallStack evaluateDeep io `catch` catchesHandler handlers
+catchesDeep io handlers = withFrozenCallStack catch (evaluateDeep io) (catchesHandler handlers)
 
 -- | 'catches' without async exception safety
 --
