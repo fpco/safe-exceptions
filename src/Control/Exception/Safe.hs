@@ -403,6 +403,35 @@ tryJust f a = withFrozenCallStack catch (Right `liftM` a) (\e -> maybe (throwM e
 onException :: HAS_CALL_STACK => C.MonadMask m => m a -> m b -> m a
 onException thing after = withFrozenCallStack withException thing (\(_ :: SomeException) -> after)
 
+-- Note: [withFrozenCallStack impredicativity]
+--
+-- We do not currently use 'withFrozenCallStack' in 'withException' or the similar
+-- 'finally' due to impredicativity. That is, we would like to be consistent
+-- with other functions and apply 'withFrozenCallStack' to the _handler only_ i.e.
+--
+--     withException thing after = withFrozenCallStack C.uninterruptibleMask $ \restore ...
+--
+-- Alas, that fails due to impredicativity:
+--
+--     • Couldn't match type: m a -> m a
+--                      with: forall a1. m a1 -> m a1
+--       Expected: (forall a1. m a1 -> m a1) -> m a
+--         Actual: (m a -> m a) -> m a
+--
+-- Armed with -XImpredicativeTypes, we can define:
+--
+--     uninterruptibleMaskFrozen :: forall m b. C.MonadMask m => ((forall a. m a -> m a) -> m b) -> m b
+--     uninterruptibleMaskFrozen = withFrozenCallStack C.uninterruptibleMask
+--
+-- and then
+--
+--     withException thing after = uninterruptibleMaskFrozen $ \restore -> do ...
+--
+-- But we cannot rely on -XImpredicativeTypes until GHC 9.2 is the oldest
+-- supported release, and even then it is worth asking if the benefit
+-- (consistency, omit handler from CallStack) is worth the cost (powerful,
+-- relatively exotic extension).
+
 -- | Like 'onException', but provides the handler the thrown
 -- exception.
 --
@@ -429,11 +458,13 @@ bracket before after = withFrozenCallStack bracketWithError before (const after)
 bracket_ :: HAS_CALL_STACK => C.MonadMask m => m a -> m b -> m c -> m c
 bracket_ before after thing = withFrozenCallStack bracket before (const after) (const thing)
 
+-- See Note [withFrozenCallStack impredicativity]
+
 -- | Async safe version of 'E.finally'
 --
 -- @since 0.1.0.0
 finally :: HAS_CALL_STACK => C.MonadMask m => m a -> m b -> m a
-finally thing after = withFrozenCallStack $ C.uninterruptibleMask $ \restore -> do
+finally thing after = C.uninterruptibleMask $ \restore -> do
     fmap fst $ C.generalBracket (pure ()) cAfter (const $ restore thing)
   where
     -- ignore the exception from after, see bracket for explanation
