@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        resolver: [nightly, lts-16, lts-14, lts-12]
+        resolver: [nightly, lts-21, lts-20, lts-19, lts-18, lts-16, lts-14, lts-12]
 
     steps:
       - name: Clone project
@@ -26,11 +26,5 @@ jobs:
             set -ex
             stack upgrade
             stack --version
-
-            # Work around for https://github.com/commercialhaskell/stack/pull/5577
-            if [[ "${{ runner.os }}" = 'Windows' ]]
-            then
-              rm C:/ProgramData/Chocolatey/bin/ghc*
-            fi
 
             stack test --fast --no-terminal --resolver=${{ matrix.resolver }}

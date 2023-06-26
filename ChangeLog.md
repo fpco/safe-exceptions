@@ -1,5 +1,9 @@
 # ChangeLog for safe-exceptions
 
+## 0.1.7.4
+
+* Add `HasCallStack` when `exceptions >= 0.10.6` [#41](https://github.com/fpco/safe-exceptions/issues/41)
+
 ## 0.1.7.3
 
 * Allow transformers 0.6 [#39](https://github.com/fpco/safe-exceptions/issues/39)
